@@ -49,6 +49,21 @@
             }
         }
         checkBrowser();
+
+        /**
+        * global logging object
+        */
+        window.KBaseLog = [];
+        var orig_console = console.log;
+        var orig_console_err = console.error;
+        console.log = function(){
+            window.KBaseLog.push(arguments);
+            orig_console.apply(console, arguments);
+        }
+        console.error = function(){
+            window.KBaseLog.push(arguments);
+            orig_console_err.apply(console, arguments);
+        }
     </script>
 
     <script src="{{ static_url("components/jquery/jquery.min.js") }}" type="text/javascript" charset="utf-8"></script>

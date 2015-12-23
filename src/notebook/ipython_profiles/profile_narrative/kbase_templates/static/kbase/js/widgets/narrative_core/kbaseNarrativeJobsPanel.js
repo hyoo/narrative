@@ -242,6 +242,50 @@ define(['jquery',
             this.$jobsModal.openPrompt();
         },
 
+        openBugReportPrompt: function(jobId, jobState, callback) {
+            if (!jobId)
+                return;
+
+            var bodyText = "Please let us know what you were trying to do.";
+            var consoleLog = [];
+            window.KBaseLog.forEach(function(args){
+                for (var i = 0, len = args.length; i < len; i++) {
+                   consoleLog.push(args[i]);
+                }
+            });
+
+            this.$jobsModalBody.empty().append(bodyText + '<hr/>');
+
+            // user input
+            this.$jobsModalBody.append('<label for="bug_jobId">Job ID:</label> <input type="text" id="bug_jobId" size="50" value="' + jobId + '"><br/>');
+            this.$jobsModalBody.append('<textarea id="bug_desc" style="width:500px;height:60px"></textarea>');
+
+            // console log
+            this.$jobsModalBody.append('<textarea id="bug_console" style="width:500px;height:200px" readonly="readonly">' + consoleLog.join("\n") + '</textarea>');
+            this.$jobsModalTitle.empty().html('Not working as you expected?');
+
+            // override submit buton
+            var btnSubmitReport = {
+                name : 'Submit',
+                type : 'danger',
+                callback : $.proxy(function(e, $prompt) {
+                    // TODO: send form to endpoint
+                    // if (this.removeId) {
+                    //     this.deleteJob(this.removeId);
+                    // }
+                    if (callback) {
+                        callback(true);
+                    }
+                    this.callback = null;
+                    $prompt.closePrompt();
+                }, this)
+            }
+            // console.warn(this.$jobsModal);
+            this.$jobsModal.options.controls[1] = btnSubmitReport;
+            // end of btn ovveride
+            this.$jobsModal.openPrompt();
+        },
+
         /**
          * Attempts to delete a job in the backend (by making a kernel call - this lets the kernel decide
          * what kind of job it is and how to stop/delete it).
@@ -720,7 +764,9 @@ define(['jquery',
             var $jobControlDiv = $('<span class="pull-right">')
                                  .append(this.makeJobClearButton(jobId, jobState.status))
                                  .append('<br>')
-                                 .append(this.makeScrollToButton(jobState.source));
+                                 .append(this.makeScrollToButton(jobState.source))
+                                 .append('<br>')
+                                 .append(this.makeBugReportButton(jobId, jobState.status));
             $jobInfoDiv.append($jobControlDiv)
                        .append($('<div style="font-size:75%">')
                                .append(jobId));
@@ -1136,6 +1182,16 @@ define(['jquery',
                        }
                    })
                    .tooltip();
+        },
+
+        makeBugReportButton: function(jobId, jobStatus) {
+            return $('<span data-toggle="tooltip" title="Report Bug" data-placement="left">')
+                    .addClass('btn-xs kb-data-list-more-btn pull-right fa fa-bug')
+                    .css({'cursor':'pointer'})
+                    .click($.proxy(function(){
+                        this.openBugReportPrompt(jobId, jobStatus);
+                    }, this))
+                    .tooltip();
         },
 
         /**
