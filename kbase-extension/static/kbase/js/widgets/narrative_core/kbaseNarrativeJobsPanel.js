@@ -181,6 +181,8 @@ function($,
             this.body().append(this.$jobsPanel)
                        .append(this.$loadingPanel)
                        .append(this.$errorPanel);
+            
+            this.showLoadingMessage('Initializing...');
 
             if (this.options.autopopulate) {
                 this.initJobStates();
@@ -523,7 +525,7 @@ function($,
             // If none of the base Jupyter stuff shows up, then it's not inited yet.
             // Just return silently.
             if (!Jupyter || !Jupyter.notebook || !Jupyter.notebook.kernel || 
-                !Jupyter.notebook.metadata)
+                !Jupyter.notebook.metadata || !Jupyter.notebook.kernel.is_connected())
                 return;
 
             // If we don't have any job ids, or it's length is zero, just show a 
@@ -630,7 +632,11 @@ function($,
                 store_history: false
             };
 
-            Jupyter.notebook.kernel.execute(pollJobsCommand, callbacks, executeOptions);
+            if (Jupyter.notebook.kernel.is_connected())
+                Jupyter.notebook.kernel.execute(pollJobsCommand, callbacks, executeOptions);
+            else {
+                console.log('Not looking up jobs - kernel is not connected.')
+            }
         },
 
         /**

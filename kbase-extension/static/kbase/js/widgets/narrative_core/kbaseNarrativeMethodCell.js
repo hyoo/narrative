@@ -13,6 +13,7 @@
 require(['jquery',
          'narrativeConfig',
          'util/string',
+         'util/bootstrapDialog',
          'handlebars', 
          'kbwidget', 
          'kbaseAuthenticatedWidget',
@@ -22,7 +23,8 @@ require(['jquery',
          'kbaseReportView'], 
 function($, 
          Config,
-         StringUtil) {
+         StringUtil,
+         BootstrapDialog) {
     'use strict';
     $.KBWidget({
         name: "kbaseNarrativeMethodCell",
@@ -63,7 +65,13 @@ function($,
             this.options.method = this.options.method.replace(/\n/g, '');
             this.method = JSON.parse(this.options.method);
             this.cellId = this.options.cellId;
-            this.initErrorModal();
+
+            this.errorDialog = new BootstrapDialog({
+                title: 'Problems exist in your parameter settings.',
+                buttons: [$('<button type="button" data-dismiss="modal">').addClass('btn btn-default').append('Dismiss')],
+                closeButton: true
+            });
+
             this.methClient = new NarrativeMethodStore(Config.url('narrative_method_store'));
             this.render();
             return this;
@@ -87,7 +95,6 @@ function($,
             this.$runButton.click(
                 $.proxy(function(event) {
                     console.log('** clicked' + (new Date()).getTime());
-                    event.preventDefault();
 
                     if (!this.checkMethodRun())
                         return;
@@ -102,7 +109,7 @@ function($,
                     this.changeState('submitted');
                     this.minimizeView();
                     this.trigger('runCell.Narrative', {
-                        cell: Jupyter.notebook.get_selected_cell(),
+                        cell: Jupyter.narrative.getCellByKbaseId(this.cellId),
                         method: this.method,
                         parameters: this.getParameters(),
                         widget: this
@@ -752,34 +759,17 @@ function($,
         checkMethodRun: function() {
             var v = this.$inputWidget.isValid();
             if (!v.isValid) {
-                this.$errorModalContent.empty();
+                var $error = $('<div>');
                 for (var i=0; i<v.errormssgs.length; i++) {
-                    this.$errorModalContent.append($('<div>')
-                                                   .addClass("kb-app-step-error-mssg")
-                                                   .append('['+(i+1)+']: ' + v.errormssgs[i]));
+                    $error.append($('<div>').addClass("kb-app-step-error-mssg")
+                                            .append('['+(i+1)+']: ' + v.errormssgs[i]));
                 }
-                this.$errorModal.modal('show');
+                this.errorDialog.setBody($error);
+                this.errorDialog.show();
                 return false;
             }
 
             return true;
-        },
-
-        initErrorModal: function() {
-            this.$errorModalContent = $('<div>');
-            this.$errorModal =  $('<div tabindex="-1" role="dialog" aria-hidden="true">').addClass("modal fade");
-            this.$errorModal.append(
-                $('<div>').addClass('modal-dialog').append(
-                    $('<div>').addClass('modal-content').append(
-                        $('<div>').addClass('modal-header kb-app-step-error-main-heading').append('<h4 class="modal-title" >Problems exist in your parameter settings.</h4>')
-                    ).append(
-                       $('<div>').addClass('modal-body').append(this.$errorModalContent)
-                    ).append(
-                        $('<div>').addClass('modal-footer').append(
-                            $('<button type="button" data-dismiss="modal">').addClass("btn btn-default").append("Dismiss"))
-                    )
-                ));
-            this.$elem.append(this.$errorModal);
         },
 
         /**

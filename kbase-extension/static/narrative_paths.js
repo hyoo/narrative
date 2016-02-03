@@ -4,6 +4,7 @@ require.config({
     // Jupyter does some magic where it merges its /static/ directory
     // with this one (kbase-profile/static)
     paths : {
+        api                                     : 'kbase/js/api',
         bluebird                                : 'ext_components/bluebird/js/browser/bluebird.min',
         plotly                                  : 'ext_components/plotly.js/dist/plotly.min',
         util                                    : 'kbase/js/util/',
@@ -34,7 +35,7 @@ require.config({
         // Non-AMD, still load with Require
         widgetMaxWidthCorrection                : 'kbase/js/widgetMaxWidthCorrection',
         kbapi                                   : 'kbase/js/widgets/kbapi',
-        'kbase-client-api'                      : 'kbase/js/api/kbase-client-api.min',
+        'kbase-client-api'                      : 'kbase/js/api/kbase-client-api',
         'kbaseFeatureValues-client-api'         : 'kbase/js/api/KBaseFeatureValues',
         'catalog-client-api'                    : 'kbase/js/api/Catalog',
         'njs-wrapper-client-api'                : 'kbase/js/api/NarrativeJobServiceWrapper',

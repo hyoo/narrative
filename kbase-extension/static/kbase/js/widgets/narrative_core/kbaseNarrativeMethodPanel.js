@@ -89,16 +89,16 @@ function ($, Config) {
                                 .on('focus',
                                     function() {
                                         console.log('focus');
-                                        if (IPython && IPython.narrative) {
-                                            IPython.narrative.disableKeyboardManager();
+                                        if (Jupyter && Jupyter.narrative) {
+                                            Jupyter.narrative.disableKeyboardManager();
                                         }
                                     }
                                 )
                                 .on('blur',
                                     function() {
                                         console.log('blur');
-                                        if (IPython && IPython.narrative) {
-                                            IPython.narrative.enableKeyboardManager();
+                                        if (Jupyter && Jupyter.narrative) {
+                                            Jupyter.narrative.enableKeyboardManager();
                                         }
                                     }
                                 );
@@ -374,7 +374,7 @@ function ($, Config) {
                 filterParams['tag'] = versionTag;
             }
 
-            var methodProm = this.methClient.list_methods_spec({},
+            var methodProm = this.methClient.list_methods_spec(filterParams,
                 $.proxy(function(methods) {
                     this.methodSpecs = {};
                     for (var i=0; i<methods.length; i++) {
