@@ -4,10 +4,12 @@ require.config({
     // Jupyter does some magic where it merges its /static/ directory
     // with this one (kbase-profile/static)
     paths : {
+        kbaseInputTest                          : 'kbase/js/widgets/function_input/kbaseInputTest',
         api                                     : 'kbase/js/api',
         bluebird                                : 'ext_components/bluebird/js/browser/bluebird.min',
         plotly                                  : 'ext_components/plotly.js/dist/plotly.min',
         util                                    : 'kbase/js/util/',
+        narrative_core                          : 'kbase/js/widgets/narrative_core',
         configPath                              : 'kbase',
         narrativeViewers                        : 'kbase/js/widgets/narrative_core/narrativeViewers',
         domReady                                : 'ext_components/requirejs/domReady',
@@ -126,14 +128,18 @@ require.config({
         'kbaseWellSampleHistogram'              : 'kbase/js/widgets/function_output/kbaseWellSampleHistogram',
         'kbaseWellSample2DPlot'                 : 'kbase/js/widgets/function_output/kbaseWellSample2DPlot',
         'kbaseChromatographyMatrix'             : 'kbase/js/widgets/function_output/kbaseChromatographyMatrix',
-
         'kbaseDefaultNarrativeOutput'           : 'kbase/js/widgets/function_output/kbaseDefaultNarrativeOutput',
+
+        'ModelingAPI'                           : 'kbase/js/api/ModelingAPI',
+        'KBModeling'                            : 'kbase/js/revised-widgets/src/widgets/modeling/KBModeling', // deprecated!
         'kbaseTabTable'                         : 'kbase/js/revised-widgets/src/widgets/modeling/kbaseTabTable',
         'KBModeling'                            : 'kbase/js/revised-widgets/src/widgets/modeling/KBModeling',
         'KBaseFBA.FBAModel'                     : 'kbase/js/revised-widgets/src/widgets/modeling/KBaseFBA.FBAModel',
         'KBaseFBA.FBAModelSet'                  : 'kbase/js/revised-widgets/src/widgets/modeling/KBaseFBA.FBAModelSet',
         'KBaseFBA.FBA'                          : 'kbase/js/revised-widgets/src/widgets/modeling/KBaseFBA.FBA',
         'KBaseFBA.FBAComparison'                : 'kbase/js/revised-widgets/src/widgets/modeling/KBaseFBA.FBAComparison',
+        'KBaseFBA.ModelComparison'              : 'kbase/js/widgets/function_output/kbaseFbaModelComparisonNew',
+        'kbaseFbaModelComparisonNew'            : 'kbase/js/widgets/function_output/kbaseFbaModelComparisonNew',
         'KBaseBiochem.Media'                    : 'kbase/js/revised-widgets/src/widgets/modeling/KBaseBiochem.Media',
         'KBasePhenotypes.PhenotypeSet'          : 'kbase/js/revised-widgets/src/widgets/modeling/KBasePhenotypes.PhenotypeSet',
         'KBasePhenotypes.PhenotypeSimulationSet': 'kbase/js/revised-widgets/src/widgets/modeling/KBasePhenotypes.PhenotypeSimulationSet',
@@ -142,6 +148,10 @@ require.config({
         'msPathway'                             : 'kbase/js/revised-widgets/src/widgets/modeling/msPathway',
         'kbasePathways'                         : 'kbase/js/revised-widgets/src/widgets/modeling/kbasePathways',
         'kbaseExpressionAnalysis'               : 'kbase/js/widgets/function_output/kbaseExpressionAnalysis',
+        'kbaseEditMedia'                        : 'kbase/js/widgets/function_input/kbaseEditMedia',
+        'kbaseMediaEditor'                      : 'kbase/js/widgets/function_input/editors/kbaseMediaEditor',
+        'kbaseModal'                            : 'kbase/js/widgets/narrative_core/kbaseModal',
+
         // another implementation of kbaseTabs needed for kbaseTabTable
         'kbaseTabTableTabs'                     : 'kbase/js/revised-widgets/src/widgets/modeling/kbaseTabs',
         'knhx'                                  : 'ext_components/knhxtree/js/knhx',
@@ -209,8 +219,10 @@ require.config({
         'kbaseButtonControls'                        : 'kbase/js/ui-common/src/widgets/kbaseButtonControls',
         'kbaseSearchControls'                        : 'kbase/js/ui-common/src/widgets/kbaseSearchControls',
         'kbaseRNASeqHistogram'                        : 'kbase/js/ui-common/src/widgets/kbaseRNASeqHistogram',
+        'kbaseExpressionMatrixHeatmap'                        : 'kbase/js/ui-common/src/widgets/kbaseExpressionMatrixHeatmap',
         'kbaseCummerbundPlot'                        : 'kbase/js/ui-common/src/widgets/kbaseCummerbundPlot',
         'kbaseExpressionSampleTable'                        : 'kbase/js/ui-common/src/widgets/kbaseExpressionSampleTable',
+        'kbasePValueHistogram'                        : 'kbase/js/ui-common/src/widgets/kbasePValueHistogram',
         'kbasePMIBarchart'                        : 'kbase/js/ui-common/src/widgets/vis/plants/kbasePMIBarchart',
         'kbaseVenndiagram'                      : 'kbase/js/ui-common/src/widgets/vis/kbaseVenndiagram',
         'kbaseBlastOutput'                      : 'kbase/js/widgets/function_output/kbaseBlastOutput',

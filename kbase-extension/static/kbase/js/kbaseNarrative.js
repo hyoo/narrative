@@ -88,6 +88,12 @@ function($,
      * but it also disables the keyboard manager when KBase cells are selected.
      */
     Narrative.prototype.registerEvents = function() {
+        $([Jupyter.events]).on('before_save.Notebook', function() {
+            $('#kb-save-btn').find('div.fa-save').addClass('fa-spin');
+        });
+        $([Jupyter.events]).on('notebook_saved.Notebook', function() {
+            $('#kb-save-btn').find('div.fa-save').removeClass('fa-spin');
+        });
         $([Jupyter.events]).on('kernel_idle.Kernel',function () {
             $("#kb-kernel-icon").removeClass().addClass('fa fa-circle-o');
         });
@@ -105,6 +111,7 @@ function($,
         }.bind(this));
 
         $([Jupyter.events]).on('notebook_save_failed.Notebook', function(event, data) {
+            $('#kb-save-btn').find('div.fa-save').removeClass('fa-spin');
             this.saveFailed(event, data);
         }.bind(this));
 
@@ -302,9 +309,8 @@ function($,
     };
 
     Narrative.prototype.saveFailed = function(event, data) {
+        $('#kb-save-btn').find('div.fa-save').removeClass('fa-spin');
         Jupyter.save_widget.set_save_status('Narrative save failed!');
-        console.log(event);
-        console.log(data);
 
         var errorText;
         // 413 means that the Narrative is too large to be saved.
@@ -382,14 +388,11 @@ function($,
         Jupyter.CellToolbar.global_show();
 
         if (Jupyter && Jupyter.notebook && Jupyter.notebook.metadata) {
-            $.each(Jupyter.notebook.get_cells(), function(idx, cell) {
-                cell.celltoolbar.hide();
-            });
+            // $.each(Jupyter.notebook.get_cells(), function(idx, cell) {
+            //     cell.celltoolbar.hide();
+            // });
 
-            var creatorId = Jupyter.notebook.metadata.creator;
-
-            $('.kb-narr-namestamp').css({'display':'block'});
-
+            var creatorId = Jupyter.notebook.metadata.creator || 'KBase User';
             DisplayUtil.displayRealName(creatorId, $('#kb-narr-creator'));
 
             // This puts the cell menu in the right place.
@@ -400,12 +403,15 @@ function($,
             this.narrController = $('#notebook_panel').kbaseNarrativeWorkspace({
                 ws_id: this.getWorkspaceName()
             });
-            $('#kb-side-panel').kbaseNarrativeSidePanel({ autorender: false }).render();
+            this.narrController.render().finally(function() {
+                $('#kb-side-panel').kbaseNarrativeSidePanel({ autorender: false }).render();
+                $('#kb-wait-for-ws').remove();
+            });
         }
         else {
             KBFatal('Narrative.init', 'Unable to locate workspace name from the Narrative object!');
+            $('#kb-wait-for-ws').remove();
         }
-        $('#kb-wait-for-ws').remove();
     };
 
     /**
@@ -509,6 +515,41 @@ function($,
 
     Narrative.prototype.getCellByKbaseId = function(id) {
         return Jupyter.notebook.get_cell(this.getCellIndexByKbaseId(id));
+    };
+
+    /**
+     * Jupyter doesn't auto select cells on creation, so this
+     * is a helper that does so. It then returns the cell object
+     * that gets created.
+     */
+    Narrative.prototype.insertAndSelectCellBelow = function(cellType, index) {
+        return this.insertAndSelectCell(cellType, 'below');
+    };
+
+    Narrative.prototype.insertAndSelectCellAbove = function(cellType, index) {
+        return this.insertAndSelectCell(cellType, 'above');
+    };
+
+    Narrative.prototype.insertAndSelectCell = function(cellType, direction, index) {
+        var newCell;
+        if (direction === 'below')
+            newCell = Jupyter.notebook.insert_cell_below(cellType, index);
+        else
+            newCell = Jupyter.notebook.insert_cell_above(cellType, index);
+        Jupyter.notebook.focus_cell(newCell);
+        Jupyter.notebook.select(Jupyter.notebook.find_cell_index(newCell));
+        this.scrollToCell(newCell);
+
+        return newCell;
+    };
+
+    Narrative.prototype.scrollToCell = function(cell, select) {
+        var $elem = $('#notebook-container');
+        $elem.animate({ scrollTop: cell.element.offset().top + $elem.scrollTop() - $elem.offset().top }, 400);
+        if (select) {
+            Jupyter.notebook.focus_cell(cell);
+            Jupyter.notebook.select(Jupyter.notebook.find_cell_index(cell));
+        }
     };
 
     return Narrative;

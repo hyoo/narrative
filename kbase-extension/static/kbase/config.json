@@ -69,8 +69,8 @@
         "workspace": "http://dev04.berkeley.kbase.us:7058", 
         "ws_browser": "http://narrative.kbase.us/functional-site/#/ws"
     }, 
-    "git_commit_hash": "cff44cf", 
-    "git_commit_time": "Thu Jan 14 14:54:58 2016 -0800", 
+    "git_commit_hash": "abed9f9", 
+    "git_commit_time": "Fri Feb 5 17:42:04 2016 -0800", 
     "loading_gif": "/narrative/static/kbase/images/ajax-loader.gif", 
     "mode": "production", 
     "name": "KBase Narrative", 

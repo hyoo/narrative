@@ -20,6 +20,7 @@
 
 define(['jquery', 
         'underscore',
+        'bluebird',
         'narrativeConfig',
         'util/bootstrapDialog',
         'util/string',
@@ -35,6 +36,7 @@ define(['jquery',
         'kbaseNarrativeDataPanel'],
 function($, 
          _,
+         Promise,
          Config,
          BootstrapDialog,
          StringUtil) {
@@ -112,6 +114,7 @@ function($,
                 }.bind(this)
             );
 
+            console.log('WORKSPACE: setting up dataUpdated.Narrative response');
             $(document).on('dataUpdated.Narrative',
                 function(event) {
                     if (Jupyter && Jupyter.notebook) {
@@ -130,6 +133,7 @@ function($,
                     }
                 }.bind(this)
             );
+            console.log('WORKSPACE: done setting up dataUpdated.Narrative response');
 
             $(document).on('narrativeDataQuery.Narrative',
                 function(e, callback) {
@@ -214,11 +218,6 @@ function($,
                     this.setDataIcon(param.elt, param.type);
                 }.bind(this)
             );
-            $(document).on('setMethodIcon.Narrative',
-                function (e, param) {
-                    this.setMethodIcon(param.elt, param.is_app);
-                }.bind(this)
-            );
 
             // Refresh the read-only or View-only mode
             $(document).on('updateReadOnlyMode.Narrative',
@@ -236,7 +235,6 @@ function($,
             }
 
             this.initDeleteCellModal();
-            this.render();
             return this;
         },
 
@@ -325,7 +323,7 @@ function($,
          * @public
          */
         buildMethodCell: function(method) {
-            var cell = Jupyter.notebook.insert_cell_below('markdown');
+            var cell = Jupyter.narrative.insertAndSelectCellBelow('markdown');
             // cell.celltoolbar.hide();
 
             // make this a function input cell, as opposed to an output cell
@@ -333,6 +331,8 @@ function($,
 
             // THIS IS WRONG! FIX THIS LATER!
             // But it should work for now... nothing broke up to this point, right?
+            // basically, we need a count of which cell id this should be.
+            // but since we're using uuids, it should be safe.
             var cellIndex = Jupyter.notebook.ncells() - 1;
             var cellId = 'kb-cell-' + cellIndex + '-' + StringUtil.uuid();
 
@@ -430,7 +430,7 @@ function($,
         },
 
         buildAppCell: function(appSpec) {
-            var cell = Jupyter.notebook.insert_cell_below('markdown');
+            var cell = Jupyter.narrative.insertAndSelectCellBelow('markdown');
             // cell.celltoolbar.hide();
             this.removeCellEditFunction(cell);
 
@@ -771,7 +771,7 @@ function($,
                     '#kb-ipy-menu',                         // kernel
                     '.kb-app-panel .pull-right',            // app icons
                     '.kb-func-panel .pull-right',           // method icons
-                    '.celltoolbar .button_container',       // Jupyter icons
+                    '.kb-cell-toolbar .buttons.pull-right',       // Jupyter icons
                     '.kb-title .btn-toolbar .btn .fa-arrow-right', // data panel slideout
             ];
         },
@@ -2126,11 +2126,10 @@ function($,
          * @param cell - the Jupyter notebook cell to reset.
          */
         resetProgress: function(cell) {
-            var $progressBar = $(cell.element).find("#kb-func-progress .kb-cell-progressbar .progress-bar");
-            $progressBar.css('width', '0%');
-
-            var $progressMsg = $(cell.element).find("#kb-func-progress .text-success");
-            $progressMsg.text("");
+            $(cell.element).find('#kb-func-progress .kb-cell-progressbar .progress-bar')
+                           .css('width', '0%');
+            $(cell.element).find('#kb-func-progress .text-success')
+                           .text('');
         },
 
         /**
@@ -2264,15 +2263,15 @@ function($,
          * @returns this
          */
         render: function() {
-            this.rebindActionButtons();
-            this.hideGeneratedCodeCells();
-            var cells = Jupyter.notebook.get_cells();
-            for (var i=0; i<cells.length; i++) {
-                this.checkCellMetadata(cells[i]);
-            }
-            this.loadAllRecentCellStates();
-
-            return this;
+            return Promise.try(function() {
+                this.rebindActionButtons();
+                this.hideGeneratedCodeCells();
+                var cells = Jupyter.notebook.get_cells();
+                for (var i=0; i<cells.length; i++) {
+                    this.checkCellMetadata(cells[i]);
+                }
+                this.loadAllRecentCellStates();
+            }.bind(this));
         },
 
 
@@ -2402,28 +2401,6 @@ function($,
                       .addClass("fa fa-inverse fa-stack-1x " + cls));
                 });
             }
-        },
-
-        /**
-         * Set the visual icon for a method or app.
-         *
-         * @param $logo - Target element
-         * @param is_app - Boolean for app or method
-         */
-        setMethodIcon: function ($logo, is_app) {
-            var name = is_app ? "app" : "method";
-            var ci = is_app ? 9 : 5; // color index
-            var icon = this.meth_icons[name];
-            // background
-            $logo.addClass("fa-stack fa-2x").css({'cursor': 'pointer'})
-              .append($('<i>')
-                .addClass("fa fa-square fa-stack-2x")
-                .css({'color': this.icon_colors[ci]}));
-            // add stack of font-awesome icons
-            _.each(icon, function (cls) {
-                $logo.append($('<i>')
-                  .addClass("fa fa-inverse fa-stack-1x " + cls));
-            });
         },
 
         /**
