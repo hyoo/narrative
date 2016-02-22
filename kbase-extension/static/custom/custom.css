@@ -41,7 +41,8 @@ CSS should go in /kbase-extension/static/kbase/css/kbaseNarrative.css
     height: auto;
     background: none;
     border: none;
-    border-bottom: none;
+    border-left: 1px solid transparent;
+    padding-top: 7px;
 }
 
 div.input_area {
@@ -59,11 +60,9 @@ div.text_cell_input {
 }*/
 
 div.cell {
-    /*padding: 5px 0px 0 0;*/
     margin: 8px 0 8px 0px;
-    padding: 6px 0 6px 4px;
+    padding: 0 0 6px 4px;
     border: 1px solid #CCC;
-    /*border-left: 5px solid  #CCC;*/
     border-radius: 0;
 }
 
@@ -118,6 +117,7 @@ span#notebook_name:hover {
 
 .prompt {
     min-width: 10ex;
+    padding-top: 10px;
 }
 
 
@@ -158,12 +158,9 @@ span#notebook_name:hover {
     color: #888;
 }
 
-
 .notebook_app .btn.active {
     box-shadow: none;
 }
-
-
 
 /* Fooling around with the narrative cells */
 
@@ -211,7 +208,28 @@ span#notebook_name:hover {
     background-color: transparent;
 }
 
+.text_cell.kb-cell .rendered_html table {
+    border: 1px solid #ddd;
+}
 
+.text_cell.kb-cell .rendered_html ul {
+    margin: 0;
+}
+
+.text_cell.opened.rendered.kb-cell .rendered_html {
+    padding: 0;
+    border: 0;
+}
+
+.text_cell.opened.rendered.selected.kb-cell .rendered_html {
+    border-left: 1px solid #4BB856;
+}
+.text_cell.opened.rendered.selected.kb-cell.kb-error .rendered_html {
+    border-left: 1px solid #d9534f;
+}
+.text_cell.opened.rendered.kb-cell {
+    padding-bottom: 0;
+}
 /* narrative cell icons */
 
 .cell.selected .prompt .method-icon {

@@ -400,11 +400,15 @@ function($,
         }
         if (this.getWorkspaceName() !== null) {
             this.initSharePanel();
+
+            var $sidePanel = $('#kb-side-panel').kbaseNarrativeSidePanel({ autorender: false });
+            // init the controller
             this.narrController = $('#notebook_panel').kbaseNarrativeWorkspace({
                 ws_id: this.getWorkspaceName()
             });
-            this.narrController.render().finally(function() {
-                $('#kb-side-panel').kbaseNarrativeSidePanel({ autorender: false }).render();
+            this.narrController.render()
+            .finally(function() {
+                $sidePanel.render();
                 $('#kb-wait-for-ws').remove();
             });
         }
@@ -510,7 +514,7 @@ function($,
      * get_cell_elements, which does this searching).
      */
     Narrative.prototype.getCellIndexByKbaseId = function(id) {
-        return $('#' + id).nearest('.cell').not('.cell .cell').index();
+        return $('#' + id).closest('.cell').not('.cell .cell').index();
     };
 
     Narrative.prototype.getCellByKbaseId = function(id) {
@@ -549,6 +553,53 @@ function($,
         if (select) {
             Jupyter.notebook.focus_cell(cell);
             Jupyter.notebook.select(Jupyter.notebook.find_cell_index(cell));
+        }
+    };
+
+    /**
+     * if setHidden === true, then always hide
+     * if setHidden === false (not null or undefined), then always show
+     * if the setHidden variable isn't present, then just toggle
+     */
+    Narrative.prototype.toggleSidePanel = function(setHidden) {
+        var delay = 'fast';
+        var hidePanel = setHidden;
+        if (hidePanel === null || hidePanel === undefined)
+            hidePanel = $('#left-column').is(':visible') ? true : false;
+        if (hidePanel) {
+            $('#left-column').trigger('hideSidePanelOverlay.Narrative');
+            $('#left-column').hide('slide', {
+                direction: 'left', 
+                easing: 'swing', 
+                complete: function() { 
+                    $('#kb-side-toggle-in').show('slide', {
+                        direction: 'left',
+                        easing: 'swing',
+                    }, delay);
+                }
+            }, delay);
+            // Move content flush left-ish
+            $('#notebook-container').animate(
+                {left: 0}, 
+                { 
+                  easing: 'swing', 
+                  duration: delay,
+                }
+            );
+        }
+        else {
+            $('#kb-side-toggle-in').hide('slide', {
+                direction: 'left',
+                easing: 'swing',
+                complete: function() {
+                    $('#left-column').show('slide', {
+                        direction: 'left', 
+                        easing: 'swing'
+                    }, delay);
+                    $('#notebook-container').animate({left: 380}, {easing: 'swing', duration: delay});
+                }
+            }, delay);
+            // Move content flush left-ish
         }
     };
 

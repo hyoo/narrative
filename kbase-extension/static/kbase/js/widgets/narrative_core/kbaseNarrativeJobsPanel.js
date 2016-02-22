@@ -511,6 +511,7 @@ function($,
          * @method
          */
         refresh: function(hideLoadingMessage, initStates) {
+            // console.log('JOB PANEL: refresh');
             if (this.jobStates === null || initStates)
                 this.initJobStates();
 
@@ -575,7 +576,9 @@ function($,
                     }
                     // otherwise, it's a method cell, so fetch info that way.
                     else {
+                        // console.log('JOB PANEL: looking up spec info for ' + jobState.source);
                         specInfo = $sourceCell.kbaseNarrativeMethodCell('getSpecAndParameterInfo');
+                        // console.log('JOB PANEL: ', specInfo);
                         if (jobIncomplete) {
                             if (specInfo) {
                                 jobParamList.push("['" + jobId + "', " +
@@ -632,6 +635,8 @@ function($,
                 store_history: false
             };
 
+            // console.log('JOB PANEL: calling kernel about jobs');
+
             if (Jupyter.notebook.kernel.is_connected())
                 Jupyter.notebook.kernel.execute(pollJobsCommand, callbacks, executeOptions);
             else {
@@ -645,7 +650,7 @@ function($,
          */
         parseKernelResponse: function(content, jobInfo) {
             // if it's not a datastream, display some kind of error, and return.
-            if (content.msg_type != 'stream') {
+            if (content.msg_type !== 'stream') {
                 this.showError('Sorry, an error occurred while loading the job list.');
                 return;
             }
@@ -693,6 +698,7 @@ function($,
          * We should also expire jobs in a reasonable time, at least from the Narrative.
          */
         populateJobsPanel: function(fetchedJobStatus, jobInfo) {
+            // console.log("JOB PANEL: fetched jobs", fetchedJobStatus, jobInfo);
             if (!this.jobStates || Object.keys(this.jobStates).length === 0) {
                 this.showMessage('No running jobs!');
                 this.setJobCounter(0);
@@ -920,19 +926,23 @@ function($,
             var source = jobState.source;
             var jobType = this.jobTypeFromId(jobId);
 
-            // console.log(['UPDATE_CELL', job, jobInfo]);
+            // console.log(['UPDATE_CELL', jobId, jobInfo]);
             var status = '';
             if (jobState.status)
                 status = jobState.status.toLowerCase();
             
             // don't do anything if we don't know the source cell. it might have been deleted.
-            if (!source)
+            if (!source) {
+                console.error("Unknown input cell for job id " + jobId + "! Exiting.");
                 return;
+            }
 
             var $cell = $('#' + source);
             // don't do anything if we know what the source should be, but we can't find it.
-            if (!$cell)
+            if ($cell.length <= 0) {
+                console.error("Unable to find cell with source " + source + " for job id " + jobId + "! Exiting.");
                 return;
+            }
 
             // if it's running and an NJS job, then it's in an app cell
             if (jobState.state.running_step_id && jobType === 'njs') {
@@ -965,6 +975,7 @@ function($,
                 }
                 else {
                     try {
+                        // console.log('setting method cell output for ', source, jobState.state.widget_outputs);
                         $cell.kbaseNarrativeMethodCell('setOutput', { 'cellId' : source, 'result' : jobState.state.widget_outputs });
                     }
                     catch (err) {

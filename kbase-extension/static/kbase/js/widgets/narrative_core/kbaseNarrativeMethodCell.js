@@ -115,7 +115,7 @@ function($,
                     }
                     console.log('** submitted' + (new Date()).getTime());
                     this.changeState('submitted');
-                    this.minimizeView();
+                    // this.minimizeView();
                     this.trigger('runCell.Narrative', {
                         cell: Jupyter.narrative.getCellByKbaseId(this.cellId),
                         method: this.method,
@@ -174,7 +174,7 @@ function($,
                                .append($('<p>')
                                        .addClass('text-success'));
 
-            var methodId = this.options.cellId + '-method-details-'+StringUtil.uuid();
+            var methodId = 'method-details-'+StringUtil.uuid();
             var buttonLabel = 'details';
             var methodDesc = this.method.info.tooltip;
 
@@ -187,16 +187,10 @@ function($,
 
             this.$header = $('<div>').css({'margin-top':'4px'})
                            .addClass('kb-func-desc');
-            this.$staticMethodInfo = $('<div>')
-                              .append('<h1><b>' + this.method.info.name + '</b></h1>')
-                              .append($('<h2>')
-                                      .attr('id', methodId)
-                                      .append(methodDesc +
-                                            ' &nbsp&nbsp<a href="'+ link +
-                                                '" target="_blank">more...</a>'
-                                      ));
-             
-            this.$header.append(this.$staticMethodInfo);
+            this.$methodDesc = $('<div>')
+                               .attr('id', methodId)
+                               .addClass('kb-method-subtitle')
+                               .append(methodDesc + ' &nbsp;&nbsp;<a href="' + link + '" target="_blank">more...</a>');
 
             this.$header.append(this.$dynamicMethodSummary);
 
@@ -209,6 +203,7 @@ function($,
             this.panel_minimized = false;
 
             this.$cellPanel = $('<div>')
+                              .append(this.$methodDesc)
                               .append(this.$inputDiv)
                               .append($('<div>')
                                       .addClass('kb-method-footer')
@@ -537,7 +532,7 @@ function($,
                 if (!this.$jobProcessTabs) {
                     this.$jobProcessTabs = $('<div>').addClass('panel-body').addClass('kb-cell-output');
                     var targetPanel = this.$elem;
-                    console.log(this.isJobStatusLoadedFromState, status, jobState, jobInfo);
+                    // console.log(this.isJobStatusLoadedFromState, status, jobState, jobInfo);
                     if (this.isJobStatusLoadedFromState && status) {
                         if ($.inArray(status.toLowerCase(), this.completedStatus) >= 0) {
                             // We move job status panel into cell panel rather than outside because when
@@ -632,12 +627,12 @@ function($,
                 var execStartTime = null;
                 var finishTime = null;
                 var posInQueue = null;
-                console.log(state.step_stats);
+                // console.log(state.step_stats);
                 if (state.step_stats) {
                     for (var key in state.step_stats) {
                         if (state.step_stats.hasOwnProperty(key)) {
                             var stats = state.step_stats[key];
-                            console.log(key, stats);
+                            // console.log(key, stats);
                             if (stats['creation_time'])
                                 creationTime = stats['creation_time'];
                             execStartTime = stats['exec_start_time'];
@@ -879,8 +874,6 @@ function($,
             var self = this;
             var $mintarget = self.$cellPanel;
 
-            self.$staticMethodInfo.hide();
-
             // create the dynamic summary based on the run state
             self.updateDynamicMethodSummaryHeader()
             self.$dynamicMethodSummary.show();
@@ -905,7 +898,6 @@ function($,
                                 .addClass("glyphicon-chevron-down");
 
             self.$dynamicMethodSummary.hide();
-            self.$staticMethodInfo.show();
             self.panel_minimized = false;
         },
 

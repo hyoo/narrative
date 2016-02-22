@@ -320,6 +320,10 @@ function ($, _, Promise, Config, DisplayUtil) {
                     this.$slideoutBtn.tooltip('hide');
                     this.trigger('hideGalleryPanelOverlay.Narrative');
                     this.trigger('toggleSidePanelOverlay.Narrative', this.$appCatalogContainer);
+                    // Need to rerender (not refresh data) because in some states, the catalog browser looks to see
+                    // if things are hidden or not. When this panel is hidden, then refreshed, all sections will
+                    // think they have no content and nothing will display.
+                    this.appCatalog.rerender();
                 }.bind(this));
 
             this.addButton(this.$slideoutBtn);
@@ -340,6 +344,17 @@ function ($, _, Promise, Config, DisplayUtil) {
             return this;
         },
 
+
+        setListHeight: function(height, animate) {
+            if(this.$methodList) {
+                if(animate) {
+                    this.$methodList.animate({'height':height}, this.slideTime); // slideTime comes from kbaseNarrativeControlPanel
+                }
+                else {
+                    this.$methodList.css({'height':height});
+                }
+            }
+        },
 
         filterList: function() {
             var txt = this.$searchInput.val().trim().toLowerCase();
@@ -604,7 +619,7 @@ function ($, _, Promise, Config, DisplayUtil) {
                 } else {
                     $star.addClass('fa fa-star kbcb-star-nonfavorite').append('&nbsp;');
                 }
-                $star.on('click', function() {
+                $star.on('click', function(event) {
                     event.stopPropagation();
                     var params = {};
                     if(method.info.module_name) {
@@ -759,18 +774,18 @@ function ($, _, Promise, Config, DisplayUtil) {
             if (specSet.methods && specSet.methods instanceof Array) {
                 results.methods = {};
                 // we need to fetch some methods, so don't 
-                this.methClient.get_method_spec({ids: specSet.methods, tag:this.currentTag})
-                        .then(function(specs){
-                            for(var k=0; k<specs.length; k++) {
-                                results.methods[specs[k].info.id] = specs[k];
-                            }
-                            callback(results);
-                        })
-                        .catch(function(err) {
-                            console.error("Error in method panel on 'getFunctionSpecs' when contacting NMS");
-                            console.error(err);
-                            callback(results); // still return even if we couldn't get the methods
-                        });
+                Promise.resolve(this.methClient.get_method_spec({ids: specSet.methods, tag:this.currentTag}))
+                    .then(function(specs){
+                        for(var k=0; k<specs.length; k++) {
+                            results.methods[specs[k].info.id] = specs[k];
+                        }
+                        callback(results);
+                    })
+                    .catch(function(err) {
+                        console.error("Error in method panel on 'getFunctionSpecs' when contacting NMS");
+                        console.error(err);
+                        callback(results); // still return even if we couldn't get the methods
+                    });
 
             } else {
                 // there were no methods to fetch, so return

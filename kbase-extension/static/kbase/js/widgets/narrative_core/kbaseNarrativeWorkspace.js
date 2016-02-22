@@ -29,7 +29,6 @@ define(['jquery',
         'bootstrap', 
         'kbaseDefaultNarrativeOutput',
         'kbaseDefaultNarrativeInput',
-        'kbasePrompt',
         'kbaseNarrativeAppCell',
         'kbaseNarrativeMethodCell',
         'kbaseNarrativeSidePanel',
@@ -114,7 +113,6 @@ function($,
                 }.bind(this)
             );
 
-            console.log('WORKSPACE: setting up dataUpdated.Narrative response');
             $(document).on('dataUpdated.Narrative',
                 function(event) {
                     if (Jupyter && Jupyter.notebook) {
@@ -133,7 +131,6 @@ function($,
                     }
                 }.bind(this)
             );
-            console.log('WORKSPACE: done setting up dataUpdated.Narrative response');
 
             $(document).on('narrativeDataQuery.Narrative',
                 function(e, callback) {
@@ -267,53 +264,46 @@ function($,
                 $(document).trigger('copyThis.Narrative', [$panel, null, $jump]);
                 return '';
             }.bind(this));
-
-            $('#kb-view-only-ctrl').click(function () {
-                this.toggleReadOnlyMode(true);
-            }.bind(this));
         },
 
         initDeleteCellModal: function() {
             this.$deleteCellModalBody = $('<div>');
 
             var buttonList = [
-                {
-                    name : 'Cancel',
-                    type : 'default',
-                    callback : function(e, $prompt) {
+                $('<button>')
+                .addClass('btn btn-default')
+                .attr('data-dismiss', 'modal')
+                .append('Cancel'),
+
+                $('<button>')
+                .addClass('btn btn-danger')
+                .attr('data-dismiss', 'modal')
+                .append('Delete')
+                .click(function(e) {
+                    if (this.cellToDelete !== undefined && this.cellToDelete !== null) {
+                        var cell = Jupyter.notebook.get_cell(this.cellToDelete);
+                        var removeId = $(cell.element).find('[id^=kb-cell-]').attr('id');
+                        this.trigger('cancelJobCell.Narrative', removeId, false);
+                        Jupyter.notebook.delete_cell(this.cellToDelete);
                         this.cellToDelete = null;
-                        $prompt.closePrompt();
                     }
-                },
-                {
-                    name : 'Delete',
-                    type : 'danger',
-                    callback : $.proxy(function(e, $prompt) {
-                        if (this.cellToDelete !== undefined && this.cellToDelete !== null) {
-                            var cell = Jupyter.notebook.get_cell(this.cellToDelete);
-                            var removeId = $(cell.element).find('[id^=kb-cell-]').attr('id');
-                            this.trigger('cancelJobCell.Narrative', removeId, false);
-                            Jupyter.notebook.delete_cell(this.cellToDelete);
-                            this.cellToDelete = null;
-                        }
-                        $prompt.closePrompt();
-                    }, this)
-                }
+                }.bind(this))
             ];
-            this.$deleteCellModal = $('<div>').kbasePrompt({
-                title : 'Delete Cell and Job?',
-                body : this.$deleteCellModalBody,
-                controls : buttonList
+            this.$deleteCellModal = new BootstrapDialog({
+                title: 'Delete Cell and Job?',
+                body: this.$deleteCellModalBody,
+                closeButton: false,
+                buttons: buttonList,
+                enterToTrigger: true
             });
         },
 
         showDeleteCellModal: function(index, cell, message) {
-            this.initDeleteCellModal();
             if (cell && cell.metadata[this.KB_CELL]) {
                 this.cellToDelete = index;
                 if (message)
                     this.$deleteCellModalBody.empty().html(message);
-                this.$deleteCellModal.openPrompt();
+                this.$deleteCellModal.show();
             }
         },
 
@@ -837,12 +827,7 @@ function($,
          */
         readOnlyMode: function(delay) {
             // Hide side-panel
-            this.trigger('hideSidePanelOverlay.Narrative');
-            if (!delay)
-                delay = 0;
-            $('#left-column').hide('slide', {direction: 'left', easing: 'swing'}, delay);
-            // Move content flush left-ish
-            $('#notebook-container').animate({left: 0}, {easing: 'swing', duration: delay});
+            Jupyter.narrative.toggleSidePanel(true);
 
             // Hide things
             _.map(this.getReadOnlySelectors(), function (id) {$(id).hide()});
@@ -859,9 +844,8 @@ function($,
                     'copy that can be modified, use the ' +
                     '"Copy" button.'
                 });
-
+                $('#kb-side-panel').kbaseNarrativeSidePanel('setReadOnlyMode', true);
                 $('#kb-view-only-copy').removeClass('hidden');
-                $('#kb-view-only-ctrl').removeClass('hidden');
                 $('#kb-view-mode').hide();
 
                 // Disable clicking on name of narrative
@@ -901,7 +885,6 @@ function($,
                 $('#kb-side-panel').kbaseNarrativeSidePanel('setReadOnlyMode', false);
                 $('#kb-view-only-msg').addClass('hidden');
                 $('#kb-view-only-copy').addClass('hidden');
-                $('#kb-view-only-ctrl').addClass('hidden');
 
                 // re-enable clicking on narrative name
                 $('#name').click(function (e) {
@@ -920,8 +903,9 @@ function($,
             }
             // Restore side-panel
             // Restore margin for content
-            $('#notebook-container').animate({left: '380'}, {duration: delay, easing: 'swing'});
-            $('#left-column').show('slide', {direction: 'left', easing: 'swing'}, delay);
+            Jupyter.narrative.toggleSidePanel(false);
+            // $('#notebook-container').animate({left: '380'}, {duration: delay, easing: 'swing'});
+            // $('#left-column').show('slide', {direction: 'left', easing: 'swing'}, delay);
             // Show hidden things
             this.inReadOnlyMode = false;
         },
@@ -1393,9 +1377,9 @@ function($,
          */
         loadAllRecentCellStates: function() {
             var cells = Jupyter.notebook.get_cells();
-            $.each(cells, $.proxy(function(idx, cell) {
+            $.each(cells, function(idx, cell) {
                 this.loadRecentCellState(cell);
-            }, this));
+            }.bind(this));
         },
 
         /**
